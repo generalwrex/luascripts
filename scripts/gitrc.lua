@@ -33,19 +33,26 @@ Github Repository Checker v1
 					Returns up to 100 commits with the first entry being the latest
 
 	
-	Example:
+	Examples:
 	
 		GitRC.CheckVersion("nrlulz", "ACF", function(data)
 			print(data.name.." is "..data.uptodate and "Up To Date" or "Out Of Date")
 		end)
 	
+		concommand.Add("acfmissiles_checkversion",function()
+	 		GitRC.CheckVersion("Bubbus", "ACF-Missiles", function(data)
+			print(data.name.." is "..(data.uptodate and "Up To Date" or "Out Of Date"))
+		end)
+-- end)
+	
+	
 */
 
-
+DEBUG = true
 
 GitRC = GitRC or {}
 
-local Repositories = {}
+GitRC.Repositories = {}
 
 local RepoURL = "https://api.github.com/repos/%s/%s/commits?per_page=10"
 
@@ -58,14 +65,6 @@ local util = util
 local file = file
 local math = math
 local print = print
-
-
--- EXAMPLE USAGE:
--- concommand.Add("acfmissiles_checkversion",function()
-	-- GitRC.CheckVersion("Bubbus", "ACF-Missiles", function(data)
-		-- print(data.name.." is "..(data.uptodate and "Up To Date" or "Out Of Date"))
-	-- end)
--- end)
 
 
 // turns a git date into os.time() seconds
@@ -127,30 +126,37 @@ local function get_randomfilenametime(files,committime)
 	return filetime
 end
 
-// this will be used for other functions, so it gets to be its own function!
+// gets repository details of the specified repository
 local function GetRepository(RepoOwner, RepoName, Callback)
-	Repositories[RepoName] = {} 
+	
 	http.Fetch(string.format(RepoURL,RepoOwner, RepoName), function(json) 
 		if json then
 			local repo = util.JSONToTable(json)
 			
-			Repositories[RepoName].commits = repo
-			Repositories[RepoName].owner = RepoOwner
-			Repositories[RepoName].name  = RepoName
-			Callback(repo)
-			--print("Repository parsed!")
-		else 
-			print("Repository "..RepoName.." not found, did you input the correct owner and name?")
+			if #repo > 0 then
+			
+				GitRC.Repositories[RepoName] = {} 
+			
+				GitRC.Repositories[RepoName].commits = repo
+				GitRC.Repositories[RepoName].owner = RepoOwner
+				GitRC.Repositories[RepoName].name  = RepoName
+				Callback(repo)
+				--print("Repository parsed!")	
+			else
+				print("Repository "..RepoName.." not found, did you input the correct owner and name?")
+			end			
 		end
 	end, print)	
 end
 
+//////////////////////////////////////////////////////////////////////
+// Start custom functions
 
 function GitRC.CheckVersion(RepoOwner, RepoName, Callback)
 	if not Callback then error("[GitC]ERROR: missing callback function. ") return end 
 
-	if Repositories[RepoName] then 
-		Callback(Repositories[RepoName])
+	if GitRC.Repositories[RepoName] then 
+		Callback(GitRC.Repositories[RepoName])
 		return 
 	end
 	
@@ -166,15 +172,29 @@ function GitRC.CheckVersion(RepoOwner, RepoName, Callback)
 					local commitdate = latestcommit.commit.author.date	
 					local committime = format_gitdate(commitdate) - get_timezone()
 					local filetime = get_randomfilenametime(latestcommit.files,committime)		
-					Repositories[RepoName].committime = committime
-					Repositories[RepoName].filetime = filetime
-					Repositories[RepoName].uptodate = committime <= filetime
+					GitRC.Repositories[RepoName].committime = committime
+					GitRC.Repositories[RepoName].filetime = filetime
+					GitRC.Repositories[RepoName].uptodate = committime <= filetime
 					
-					Callback(Repositories[RepoName])
+					Callback(GitRC.Repositories[RepoName])
 				else
 					print("Commit data not found, something went horribly wrong!")
 				end
 			end, print)	
 		end
 	end)	
+end
+
+
+if DEBUG then
+
+		concommand.Add("gitrc_checkversion",function(ply, cmd, args)
+			
+			if args == nil then return print( "You need to specify a repoowner and reponame") end
+			
+	 		GitRC.CheckVersion(args[1], args[2], function(data)
+				print(data.name.." is "..(data.uptodate and "Up To Date" or "Out Of Date"))
+			end)
+		end)
+
 end
