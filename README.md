@@ -1,10 +1,13 @@
 # Lua Scripts and Modules for Garry's mod
 
 
+##Github Repository Checker 
 
-    Github Repository Checker v1 
+    Github Version Checker v1 
 	
-	  Created by Wrex & Bubbus
+	based on Github Repository Checker 
+	
+	  Created by General Wrex & Bubbus
 		
 	  Credits: Nebual
 	
@@ -42,3 +45,4 @@
 			print(data.name.." is "..data.uptodate and "Up To Date" or "Out Of Date")
 		end)
 	
+
