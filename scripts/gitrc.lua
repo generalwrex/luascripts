@@ -41,10 +41,11 @@ Github Repository Checker v1
 	
 		concommand.Add("acfmissiles_checkversion",function()
 	 		GitRC.CheckVersion("Bubbus", "ACF-Missiles", function(data)
-			print(data.name.." is "..(data.uptodate and "Up To Date" or "Out Of Date"))
+				print(data.name.." is "..(data.uptodate and "Up To Date" or "Out Of Date"))
+			end)
 		end)
--- end)
-	
+
+	Actual usage : https://github.com/Bubbus/ACF-Missiles/commit/b285a66ef1f27f922cb9aaed62781f51febfa8bc
 	
 */
 
